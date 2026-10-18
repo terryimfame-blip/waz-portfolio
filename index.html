@@ -3,17 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Video Editor Portfolio</title>
-  <meta name="description" content="รวมผลงานตัดต่อวิดีโอ โฆษณา คลิปสั้น มิวสิกวิดีโอ และ Motion Graphics">
+  <title>Waz — Video Editor Portfolio</title>
+  <meta name="description" content="แฟ้มสะสมงานตัดต่อวิดีโอของ Waz (ธันวา สมตัว) — คลิปสั้น โฆษณา พอดแคสต์ และคอนเทนต์ยาว จากลูกค้ากว่า 12 ราย">
+  <meta name="theme-color" content="#050403">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Waz — Video Editor Portfolio">
+  <meta property="og:description" content="แฟ้มสะสมงานตัดต่อวิดีโอ: คลิปสั้น โฆษณา พอดแคสต์ — More than a cut, it's a story.">
+  <meta property="og:url" content="https://terryimfame-blip.github.io/waz-portfolio/">
+  <meta property="og:image" content="https://terryimfame-blip.github.io/waz-portfolio/assets/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@500;900&family=Space+Grotesk:wght@400;500;700&family=Noto+Sans+Thai:wght@300;400;600;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=1792322027">
+  <script src="https://fast.wistia.com/player.js" async></script>
+  <script src="https://fast.wistia.com/embed/eqxpul09uo.js" async type="module"></script>
+  <link rel="stylesheet" href="style.css?v=1792343243">
 </head>
 <body>
   <header class="nav">
     <a href="#top" class="logo" id="navName"></a>
-    <nav>
+    <button class="menu-btn" id="menuBtn" type="button" aria-label="เมนู" aria-expanded="false" aria-controls="mainNav"><span></span><span></span></button>
+    <nav id="mainNav">
       <a href="#works">ผลงาน</a>
       <a href="#about">เกี่ยวกับ</a>
       <a href="#services">บริการ</a>
@@ -43,6 +56,26 @@
       </div>
     </section>
 
+        <!-- วิดีโอเล่นวนอัตโนมัติ (ไม่มีปุ่ม/ไม่มีเสียง) คั่นระหว่างหน้าแรกกับ Highlights -->
+    <div class="loop-band" id="loopBand" aria-hidden="true">
+      <wistia-player media-id="eqxpul09uo" aspect="1.7777777777777777"
+        autoplay="true" muted="true" silent-autoplay="true" end-video-behavior="loop" playsinline="true"
+        big-play-button="false" small-play-button="false" play-bar="false" volume-control="false"
+        fullscreen-button="false" settings-control="false" controls-visible-on-load="false" focus-on-play="false"></wistia-player>
+    </div>
+
+        <section id="featured" class="section featured-sec" hidden>
+      <div class="featured">
+        <div class="featured-text">
+          <span class="feat-badge" id="featBadge"></span>
+          <h2 id="featTitle"></h2>
+          <p class="muted" id="featDesc"></p>
+          <a class="post-link" id="featLink" target="_blank" rel="noopener"></a>
+        </div>
+        <div class="feat-frames" id="featFrames"></div>
+      </div>
+    </section>
+
     <section id="highlights" class="section gallery-sec">
       <h2 class="label"><span>Highlights</span></h2>
       <p class="muted work-summary">สุ่มจากผลงานทั้งหมดทุกครั้งที่เปิดหน้า — ชี้เพื่อหยุด กดที่ภาพเพื่อเล่นคลิป</p>
@@ -57,6 +90,12 @@
     </section>
 
     <section id="about" class="section">
+      <img class="float-el fe-head" src="assets/el/cool-headphones.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" data-speed="0.09">
+      <img class="float-el fe-lens" src="assets/el/cool-lens.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" data-speed="0.06">
+      <img class="float-el fe-reel" src="assets/el/reel.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" data-speed="0.1">
+      <img class="float-el fe-crt" src="assets/el/crt.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" data-speed="0.08">
+      <img class="float-el fe-planet" src="assets/el/planet.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" data-speed="0.05">
+      <img class="float-el fe-play" src="assets/el/play.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" data-speed="0.12">
       <div class="about">
         <div class="portrait" id="portrait">
           <div class="orbit" id="orbit"></div>
@@ -72,6 +111,7 @@
     </section>
 
     <section class="section tint" id="brandsSection">
+      <img class="float-el fe-clap" src="assets/el/clapper.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" data-speed="0.08">
       <h2 class="label"><span>Brands I've worked with</span></h2>
       <div class="brands" id="brands"></div>
     </section>
@@ -79,19 +119,27 @@
     <section id="services" class="section">
       <h2 class="label"><span>What I do</span></h2>
       <div class="services" id="services-list"></div>
+      <h3 class="process-title" id="processTitle">ขั้นตอนการทำงาน</h3>
+      <ol class="process" id="processList"></ol>
     </section>
 
     <section id="contact" class="section contact-sec">
+      <img class="float-el fe-wave" src="assets/el/wave.jpg" alt="" aria-hidden="true" loading="lazy" decoding="async" data-speed="0.07">
       <h2 class="label"><span>Let's work together</span></h2>
       <p class="muted">ส่งรายละเอียดงานมาได้เลย ตอบกลับภายใน 24 ชม.</p>
       <div class="contact" id="contactList"></div>
     </section>
   </main>
 
+  <a class="line-fab" id="lineFab" href="#contact" target="_blank" rel="noopener" aria-label="ทักแชททาง LINE" hidden>
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#06c755" d="M12 2C6.5 2 2 5.6 2 10.1c0 4 3.6 7.4 8.4 8 .3.1.8.2.9.5.1.3.1.7 0 1l-.2.9c-.1.3-.2 1.1 1 .6 1.2-.5 6.4-3.8 8.7-6.5 1.6-1.8 2.2-3.6 2.2-5.5C23 5.6 18.5 2 12 2z"/></svg>
+    <span>ทักแชท</span>
+  </a>
+
   <footer><span id="footName"></span> · © <span id="year"></span></footer>
 
 
-  <script src="works.js?v=1792322027"></script>
-  <script src="script.js?v=1792322027"></script>
+  <script src="works.js?v=1792343243"></script>
+  <script src="script.js?v=1792343243"></script>
 </body>
 </html>

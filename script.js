@@ -20,11 +20,19 @@ $("heroTagline").textContent = PROFILE.tagline;
 $("aboutText").textContent = PROFILE.about;
 $("nameTh").textContent = PROFILE.fullNameTh || "";
 $("nameEn").textContent = PROFILE.fullNameEn || "";
-$("stats").innerHTML = PROFILE.stats.map((s) => `<div><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`).join("");
+// สถิติ: ใช้ที่ตั้งเองใน works.js ถ้าไม่มี คำนวณจากข้อมูลจริงในพอร์ต (จำนวนคลิป/ลูกค้า)
+const statsList = PROFILE.stats?.length ? PROFILE.stats : [
+  { value: WORKS.length, label: "คลิปในพอร์ต" },
+  { value: new Set(WORKS.map((w) => w.client)).size, label: "ลูกค้า" },
+];
+$("stats").innerHTML = statsList.map((s) => `<div><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`).join("");
 $("brands").innerHTML = (PROFILE.brands || []).map((b) => `<span>${esc(b)}</span>`).join("");
 $("services-list").innerHTML = PROFILE.services
   .map((s, i) => `<div class="service"><b>0${i + 1}</b><h3>${esc(s.title)}</h3><p>${esc(s.desc)}</p></div>`)
   .join("");
+
+$("processList").innerHTML = (PROFILE.process || []).map((p) => `<li>${p.icon ? `<img class="step-ico" src="${esc(p.icon)}" alt="" loading="lazy" decoding="async">` : ""}<h4>${esc(p.title)}</h4><p>${esc(p.desc)}</p></li>`).join("");
+if (!PROFILE.process?.length) { $("processList").hidden = true; $("processTitle").hidden = true; }
 
 // รูปโปรไฟล์ + ป้ายโปรแกรมลอยรอบรูป
 if (PROFILE.photo) {
@@ -32,10 +40,12 @@ if (PROFILE.photo) {
   $("portrait").insertAdjacentHTML("afterbegin", `<img class="cutout" src="${esc(PROFILE.photo)}" alt="${esc(PROFILE.name)}">`);
 }
 // ซ่อนส่วนที่ยังไม่มีข้อมูลจริง
-if (!PROFILE.stats?.length) $("stats").hidden = true;
 if (!PROFILE.brands?.length) $("brandsSection").hidden = true;
 // ตำแหน่งป้ายลอย (เลี่ยงใบหน้า: ซ้าย-กลางรูป) — ไว้มุมขวาบน ขอบขวา และบริเวณเสื้อด้านล่าง
-const spots = [["70%", "3%"], ["80%", "56%"], ["-2%", "86%"], ["50%", "92%"], ["84%", "20%"], ["-12%", "6%"]];
+// จอแคบ: ป้ายต้องอยู่ในกรอบรูป ไม่ยื่นออกนอกขอบจอ
+const spots = matchMedia("(max-width: 760px)").matches
+  ? [["56%", "3%"], ["54%", "58%"], ["2%", "86%"], ["50%", "92%"], ["56%", "20%"], ["2%", "6%"]]
+  : [["70%", "3%"], ["80%", "56%"], ["-2%", "86%"], ["50%", "92%"], ["84%", "20%"], ["-12%", "6%"]];
 $("orbit").innerHTML = PROFILE.tools
   .slice(0, spots.length)
   .map((t, i) => `<span style="left:${spots[i][0]};top:${spots[i][1]};animation-delay:${-i * 0.8}s">${esc(t)}</span>`)
@@ -87,13 +97,17 @@ const lazyThumbs = new IntersectionObserver((entries) => {
   }
 }, { rootMargin: "600px 400px" });
 
-const allClients = [...new Set(WORKS.map((w) => w.client))];
+const allClients = [...new Set([...(PROFILE.clientOrder || []), ...WORKS.map((w) => w.client)])].filter((c) => WORKS.some((w) => w.client === c));
 let active = "ทั้งหมด";
 
 function renderFilters() {
+  const count = (k) => (k === "ทั้งหมด" ? WORKS.length : WORKS.filter((w) => w.client === k).length);
   $("filters").innerHTML = ["ทั้งหมด", ...allClients]
-    .map((k) => `<button class="${k === active ? "on" : ""}" data-k="${esc(k)}">${esc(k)}</button>`)
+    .map((k) => `<button class="chip${k === active ? " on" : ""}" data-k="${esc(k)}" aria-pressed="${k === active}"><span>${esc(k)}</span><b>${count(k)}</b></button>`)
     .join("");
+  // มือถือ: เลื่อนแถบให้ลูกค้าที่เลือกอยู่กลางแถบ
+  const on = $("filters").querySelector(".on");
+  if (on) $("filters").scrollTo({ left: on.offsetLeft - ($("filters").clientWidth - on.offsetWidth) / 2, behavior: "smooth" });
 }
 
 function postLink(w) {
@@ -108,11 +122,17 @@ const fmtDur = (s) => {
   return (h ? `${h}:${String(m).padStart(2, "0")}` : `${m}`) + `:${String(r).padStart(2, "0")}`;
 };
 
+// 1234 → 1.2K · 21885 → 21.9K · 46618 → 46.6K · 1250000 → 1.3M
+const fmtViews = (n) => {
+  const f = (v, d) => v.toFixed(d).replace(/\.0$/, "");
+  return n >= 1e6 ? f(n / 1e6, 1) + "M" : n >= 1e3 ? f(n / 1e3, n < 1e5 ? 1 : 0) + "K" : String(n);
+};
+
 function reelHtml(w, i) {
   return `
     <div class="reel-item${w.vertical ? "" : " wide"}">
       <article class="reel" data-i="${i}" tabindex="0" role="button" aria-label="เล่น ${esc(w.title)}" data-thumb="${esc(thumbUrl(w))}" data-g="${gradients[i % gradients.length]}" style="background-image:${gradients[i % gradients.length]}">
-        <span class="play"></span>${w.dur ? `<span class="dur">${fmtDur(w.dur)}</span>` : ""}<h3>${esc(w.title)}</h3>
+        <span class="play"></span>${w.dur ? `<span class="dur">${fmtDur(w.dur)}</span>` : ""}${w.tag ? `<span class="tag-ai">${esc(w.tag)}</span>` : ""}${w.bts?.length ? `<button class="bts-btn" type="button" aria-label="ดูเบื้องหลังการตัดต่อ">BTS</button>` : ""}${w.views != null ? `<span class="views" title="ยอดวิวบน YouTube ณ ${esc(VIEWS_AS_OF)}">${fmtViews(w.views)} views</span>` : ""}<h3>${esc(w.title)}</h3>
       </article>
       ${postLink(w)}
     </div>`;
@@ -126,29 +146,32 @@ function renderWorks() {
     const items = WORKS.map((w, i) => ({ w, i })).filter(({ w }) => w.client === client);
     const programs = [...new Set(items.map(({ w }) => w.program || ""))];
     return `
-      <section class="client">
-        <header class="client-head"><h3>${esc(client)}</h3><span>${items.length} คลิป</span></header>
+      <section class="client reveal${PROFILE.clientNotes?.[client] ? " spot" : ""}">
+        <header class="client-head"><h3>${esc(client)}</h3>${PROFILE.clientNotes?.[client]?.badge ? `<span class="client-badge">${esc(PROFILE.clientNotes[client].badge)}</span>` : ""}<span>${items.length} คลิป</span></header>
+        ${PROFILE.clientNotes?.[client]?.text ? `<p class="client-note">${esc(PROFILE.clientNotes[client].text)}</p>` : ""}
         ${programs.map((p) => `
           ${p ? `<p class="program">${esc(p)}</p>` : ""}
           <div class="reels">${items.filter(({ w }) => (w.program || "") === p).map(({ w, i }) => reelHtml(w, i)).join("")}</div>`).join("")}
       </section>`;
   }).join("");
   $("clients").querySelectorAll(".reel[data-thumb]").forEach((el) => lazyThumbs.observe(el));
+  observeReveals($("clients"));
 }
 
-$("workSummary").textContent = `${WORKS.length} คลิป · ${allClients.length} ลูกค้า`;
+$("workSummary").textContent = `${WORKS.length} คลิป · ${allClients.length} ลูกค้า — เลือกดูตามลูกค้าด้านล่าง`;
 $("filters").addEventListener("click", (e) => {
-  const b = e.target.closest("button");
+  const b = e.target.closest(".chip");
   if (!b) return;
   active = b.dataset.k;
   renderFilters();
   renderWorks();
+  history.replaceState(null, "", active === "ทั้งหมด" ? location.pathname + location.search : "#client=" + encodeURIComponent(active));
 });
 
 // ---- เล่นในที่เดิม (ไม่มี popup) ----
 function embed(w) {
   if (w.type === "youtube")
-    return `<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(w.src)}?autoplay=1&rel=0&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="${esc(w.title)}"></iframe>`;
+    return `<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(w.src)}?autoplay=1&rel=0&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen title="${esc(w.title)}"></iframe>`;
   if (w.type === "vimeo")
     return `<iframe src="https://player.vimeo.com/video/${encodeURIComponent(w.src)}?${w.hash ? `h=${encodeURIComponent(w.hash)}&` : ""}autoplay=1&playsinline=1&dnt=1&title=0&byline=0&portrait=0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${esc(w.title)}"></iframe>`;
   if (w.type === "drive") // src = ID ไฟล์ใน Drive (ต้องตั้งแชร์เป็น "ทุกคนที่มีลิงก์")
@@ -205,9 +228,10 @@ function startPlayback(host) {
 let live = null;
 function stopLive() {
   if (!live) return;
-  live.host.classList.remove("live");
+  live.host.classList.remove("live", "bts");
   live.host.innerHTML = live.html; // คืนภาพปก + หยุดวิดีโอ
-  live.item?.classList.remove("playing");
+  live.item?.classList.remove("playing", "bts-open");
+  live.card?.classList.remove("playing");
   live = null;
 }
 
@@ -228,13 +252,35 @@ function centerOn(el) {
   const r = target.getBoundingClientRect();
   const media = target.querySelector(".reel") || target;
   const h = media.getBoundingClientRect().height; // ไม่รวมลิงก์โพสต์ใต้การ์ด
-  scrollTo({ top: Math.max(0, r.top + scrollY + h / 2 - innerHeight / 2), behavior: "smooth" });
+  let top = r.top + scrollY + h / 2 - innerHeight / 2;       // ปกติ: ให้อยู่กลางจอ
+  if (h > innerHeight - 110) top = r.top + scrollY - 90;      // สูงเกินจอ: ชิดใต้เมนู ไม่ให้ส่วนบนโดนตัด
+  scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+}
+
+// BTS: สลับการ์ดเป็นภาพเบื้องหลังการตัดต่อ (เช่น ไทม์ไลน์ Premiere) ในที่เดิม ดูหลายภาพได้ ปิดแล้วกลับเป็นการ์ดเดิม
+function showBts(w, el) {
+  stopLive();
+  live = { host: el, html: el.innerHTML, item: el.closest(".reel-item") };
+  el.classList.add("live", "bts");
+  live.item?.classList.add("playing", "bts-open"); // BTS: ขยายเต็มแถว ให้ไทม์ไลน์อ่านง่าย
+  const st = { k: 0 };
+  const draw = () => {
+    el.innerHTML = `<img class="bts-img" src="${esc(w.bts[st.k])}" alt="เบื้องหลังการตัดต่อ ${esc(w.title)}">
+      <div class="bts-bar"><span>BEHIND THE EDIT · ${st.k + 1}/${w.bts.length}</span>${w.bts.length > 1 ? '<button class="bts-next" type="button">NEXT ›</button>' : ""}</div>
+      <button class="stop" type="button" aria-label="ปิด">×</button>`;
+  };
+  st.next = () => { st.k = (st.k + 1) % w.bts.length; draw(); };
+  live.bts = st;
+  draw();
+  centerOn(el);
 }
 
 function onActivate(e) {
   if (e.target.closest(".stop")) { stopLive(); return; }
   if (e.target.closest("a")) return;
+  if (e.target.closest(".bts-next")) { live?.bts?.next(); return; }
   const el = e.target.closest("[data-i]");
+  if (e.target.closest(".bts-btn") && el) { showBts(WORKS[+el.dataset.i], el); return; }
   if (!el || (live && (live.host === el || el.contains(live.host)))) return;
   playInline(WORKS[+el.dataset.i], el);
 }
@@ -254,11 +300,50 @@ function playWork(i) {
   if (el) playInline(WORKS[i], el);
 }
 
-// ปุ่ม Play reel กลางหน้าแรก (คลิปที่ตั้ง showreel: true ไม่งั้นคลิปแรกสุด)
+// ปุ่ม Play reel กลางหน้าแรก: เล่นคลิปที่ตั้ง showreel: true ไม่งั้นคลิปแรกสุด
 $("orb").addEventListener("click", () => {
   const i = WORKS.findIndex((w) => w.showreel);
   playWork(i < 0 ? 0 : i);
 });
+
+// ---- บล็อกเด่น (เช่น ตัดต่อเอง ผสมคลิปที่สร้างด้วย AI) — ภาพปกล่าสุดจาก Wistia กดแล้วเล่นในที่เดิม ----
+(function initFeatured() {
+  const f = PROFILE.featured;
+  if (!f?.items?.length) return;
+  $("featBadge").textContent = f.badge || "";
+  $("featBadge").hidden = !f.badge;
+  $("featTitle").textContent = f.title || "";
+  $("featDesc").textContent = f.desc || "";
+  $("featDesc").hidden = !f.desc;
+  $("featLink").hidden = true;
+  $("featFrames").innerHTML = f.items.map((it, k) => `
+    <figure class="feat-card">
+      <div class="feat-frame" data-fi="${k}" role="button" tabindex="0" aria-label="เล่น ${esc(it.label || "")}">
+        <span class="feat-play"></span>
+      </div>
+      ${it.label ? `<figcaption>${esc(it.label)}</figcaption>` : ""}
+    </figure>`).join("");
+  f.items.forEach((it, k) => { // ภาพปก: ถามภาพล่าสุดจาก Wistia (คลิปอื่นใช้ภาพที่ตั้งไว้)
+    const el = $("featFrames").querySelector(`[data-fi="${k}"]`);
+    const set = (u) => { if (u && !el.classList.contains("live")) el.style.backgroundImage = `url('${u}')`; };
+    liveThumb({ ...it, vertical: true }).then((u) => set(u && u.replace("360x640", "540x960") || it.thumb));
+  });
+  $("featured").hidden = false;
+  $("featured").querySelectorAll(".featured-text > *, .feat-card").forEach((el) => el.classList.add("reveal"));
+})();
+function playFeatured(frame) {
+  if (frame.classList.contains("live")) return;
+  const it = PROFILE.featured.items[+frame.dataset.fi];
+  stopLive();
+  live = { host: frame, html: frame.innerHTML, item: null, card: frame.closest(".feat-card") };
+  live.card?.classList.add("playing");
+  frame.classList.add("live");
+  frame.innerHTML = `${embed({ ...it, title: it.label || "", vertical: true })}<button class="stop" type="button" aria-label="ปิดวิดีโอ">×</button>`;
+  startPlayback(frame);
+  centerOn(frame);
+}
+$("featFrames").addEventListener("click", (e) => { const fr = e.target.closest(".feat-frame"); if (e.target.closest(".stop")) stopLive(); else if (fr) playFeatured(fr); });
+$("featFrames").addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.matches(".feat-frame")) { e.preventDefault(); playFeatured(e.target); } });
 
 // ---- Highlights: แกลเลอรีสุ่มเลื่อนวน (ซ้ายขึ้น · กลางลง · ขวาขึ้น …) ----
 function buildGallery() {
@@ -273,7 +358,7 @@ function buildGallery() {
   const tile = ({ w, i }, k, c, copy) => `
     <figure class="g-tile" data-i="${i}" ${copy ? 'aria-hidden="true"' : `tabindex="0" role="button" aria-label="เล่น ${esc(w.title)}"`} style="aspect-ratio:${ratios[(k + c * 2) % ratios.length]}">
       <img src="${esc(thumbUrl(w))}" alt="" loading="lazy" decoding="async">
-      <figcaption><span>${esc(w.client)}</span>${esc(w.title)}</figcaption>
+      <figcaption>${w.program === "beyond change" ? "" : `<span>${esc(w.client)}</span>`}${esc(w.title)}</figcaption>
     </figure>`;
   $("galleryGrid").innerHTML = Array.from({ length: COLS }, (_, c) => {
     const col = picks.filter((_, k) => k % COLS === c);
@@ -296,5 +381,72 @@ $("galleryGrid").addEventListener("keydown", (e) => {
 });
 buildGallery();
 
+// ---- เลื่อนแล้วค่อย ๆ โผล่ ----
+const revealIO = "IntersectionObserver" in window
+  ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); revealIO.unobserve(e.target); } }), { threshold: 0.1, rootMargin: "0px 0px -6% 0px" })
+  : null;
+function observeReveals(root = document) {
+  if (revealIO) root.querySelectorAll(".reveal:not(.in)").forEach((el) => revealIO.observe(el));
+}
+document.querySelectorAll(".section > .label, .work-summary, .filters, .about, .brands, .service, .process-title, .process li, .contact-sec > p, .contact").forEach((el) => el.classList.add("reveal"));
+
+// ---- เมนูมือถือ ----
+const navEl = document.querySelector(".nav"), menuBtn = $("menuBtn");
+const setMenu = (open) => { navEl.classList.toggle("open", open); menuBtn.setAttribute("aria-expanded", String(open)); };
+menuBtn.addEventListener("click", () => setMenu(!navEl.classList.contains("open")));
+$("mainNav").addEventListener("click", (e) => { if (e.target.closest("a")) setMenu(false); });
+document.addEventListener("click", (e) => { if (!e.target.closest(".nav")) setMenu(false); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") setMenu(false); });
+
+// ---- ปุ่ม LINE ลอย (โผล่หลังเลื่อนผ่านหน้าแรก) ----
+if (PROFILE.contact?.line) {
+  const fab = $("lineFab");
+  fab.href = `https://line.me/ti/p/~${encodeURIComponent(PROFILE.contact.line)}`;
+  fab.hidden = false;
+  let raf = 0;
+  addEventListener("scroll", () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = 0; fab.classList.toggle("show", scrollY > 500); });
+  }, { passive: true });
+}
+
+// ---- element ลอย: ขยับสวนการเลื่อนเล็กน้อย (ลึก/ตื้นต่างกันตาม data-speed) ----
+const floats = [...document.querySelectorAll(".float-el")];
+if (floats.length && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  let ticking = false;
+  const updateFloats = () => {
+    ticking = false;
+    for (const el of floats) {
+      // จุดยึดของ element เอง (ไม่ใช่ทั้ง section ที่อาจสูงหลายพันพิกเซล) — offsetTop ไม่ถูกกระทบจาก translate/animation
+      const anchor = el.parentElement.getBoundingClientRect().top + el.offsetTop + el.offsetHeight / 2;
+      if (anchor < -400 || anchor > innerHeight + 400) continue; // ไกลนอกจอ ไม่ต้องคำนวณ
+      el.style.translate = `0 ${-(anchor - innerHeight / 2) * (+el.dataset.speed || 0.08)}px`;
+    }
+  };
+  addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(updateFloats); } }, { passive: true });
+  addEventListener("resize", updateFloats);
+  updateFloats();
+}
+
+// ---- วิดีโอวนคั่นก่อน Highlights: ถ้าผู้ใช้ตั้งลดการเคลื่อนไหว ให้หยุดเล่น ----
+if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  const lp = document.querySelector("#loopBand wistia-player");
+  customElements.whenDefined("wistia-player").then(() => setTimeout(() => { try { lp.pause?.(); } catch {} }, 1500));
+}
+
+// ---- ลิงก์ตรงไปยังลูกค้า: ...#client=Fayda ----
+const clientFromHash = () => {
+  const m = location.hash.match(/^#client=(.+)$/);
+  if (!m) return null;
+  try { const n = decodeURIComponent(m[1]); return allClients.includes(n) ? n : null; } catch { return null; }
+};
+active = clientFromHash() || "ทั้งหมด";
 renderFilters();
 renderWorks();
+if (active !== "ทั้งหมด") $("works").scrollIntoView();
+addEventListener("hashchange", () => {
+  const n = clientFromHash();
+  if (n && n !== active) { active = n; renderFilters(); renderWorks(); $("works").scrollIntoView(); }
+});
+observeReveals();
+document.documentElement.classList.add("reveal-ready");

@@ -1,5 +1,6 @@
-.DS_Store
 # สคริปต์ช่วยทำงานในเครื่อง + ไฟล์สำรอง — ไม่ต้องขึ้นเว็บ
-tools/
-assets/me-color-backup.png
+.DS_Store
 assets/me-auto-cutout-backup.png
+assets/me-color-backup.png
+assets/original/
+tools/

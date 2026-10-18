@@ -44,7 +44,7 @@ a { color: inherit; text-decoration: none; }
   display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start;
 }
 .hero-art {
-  position: absolute; inset: -4%; z-index: -3; background: url("assets/hero.png") center 62% / cover no-repeat;
+  position: absolute; inset: -4%; z-index: -3; background: url("assets/hero.jpg") center 62% / cover no-repeat;
   transform: translate(var(--px, 0), var(--py, 0)) scale(1.06); transition: transform .4s ease-out;
   animation: drift 24s ease-in-out infinite alternate;
 }
@@ -113,26 +113,96 @@ a { color: inherit; text-decoration: none; }
 .g-tile figcaption { position: absolute; z-index: 1; left: 12px; right: 12px; bottom: 10px; font-size: .82rem; line-height: 1.3; font-weight: 500; }
 .g-tile figcaption span { display: block; color: var(--copper); font-family: var(--display); font-size: .62rem; letter-spacing: .22em; text-transform: uppercase; margin-bottom: 2px; }
 
-/* filters */
-.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
-.filters button {
-  background: transparent; color: var(--muted); border: 1px solid var(--line); padding: 7px 20px; border-radius: 999px;
-  cursor: pointer; font: inherit; font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; transition: .2s;
+/* วิดีโอวนคั่นก่อน Highlights: เต็มความกว้าง ขอบบน/ล่างจางเข้าพื้นดำ ไม่มีตัวควบคุม */
+.loop-band { position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 86vh; overflow: hidden; background: #000; pointer-events: none;
+  -webkit-mask-image: linear-gradient(transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(transparent, #000 12%, #000 88%, transparent); }
+.loop-band wistia-player { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.loop-band wistia-player:not(:defined) { background: center / cover no-repeat url("https://fast.wistia.com/embed/medias/eqxpul09uo/swatch"); filter: blur(5px); }
+
+/* บล็อกเด่น: ป้าย + หัวข้อ ซ้าย / คลิปแนวตั้ง 2 ใบ ขวา */
+.featured-sec { padding-top: 90px; padding-bottom: 40px; }
+.featured-sec[hidden] { display: none; }
+.featured { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 56px; align-items: center; max-width: 1060px; margin: 0 auto; }
+.feat-badge { display: inline-block; padding: 6px 16px; border-radius: 999px; border: 1px solid var(--copper); color: var(--copper);
+  font: 700 .72rem var(--display); letter-spacing: .3em; animation: featPulse 2.8s ease-out infinite; }
+@keyframes featPulse { 0% { box-shadow: 0 0 0 0 rgba(224, 116, 58, .5); } 70%, 100% { box-shadow: 0 0 0 16px rgba(224, 116, 58, 0); } }
+.featured-text h2 { margin: 18px 0 14px; font-family: var(--display); font-weight: 600; font-size: clamp(1.9rem, 4.4vw, 3.2rem); line-height: 1.12; letter-spacing: -.01em; }
+.featured-text p { max-width: 30em; margin-bottom: 18px; }
+.feat-frames { display: flex; gap: 22px; align-items: flex-start; flex-wrap: nowrap; justify-content: center; } /* จอกว้าง: 2 การ์ดเรียงข้างกันเสมอ (ห้ามตกบรรทัด ไม่งั้นข้อความที่จัดกึ่งกลางจะลอยห่างคลิป) */
+.feat-card { margin: 0; width: 250px; flex: none; }  /* ไม่มีแอนิเมชันความกว้าง: ขนาดสุดท้ายมีทันที ให้เลื่อนหน้าไปกลางจอได้แม่น */
+/* คลิปที่กำลังเล่น: กว้างสุด 380px แต่สูงต้องไม่เกินหน้าจอ (เผื่อเมนู/ขอบ ~150px) และไม่เล็กกว่าเดิม */
+.feat-card.playing { width: min(380px, 100%, max(250px, calc((100vh - 150px) * 9 / 16))); }
+.feat-card figcaption { margin-top: 12px; font: 700 .7rem var(--display); letter-spacing: .22em; color: var(--muted); text-transform: uppercase; }
+.feat-frame { position: relative; aspect-ratio: 9 / 16; border-radius: 18px; overflow: hidden; background: #0b0705 center / cover no-repeat; cursor: pointer; border: 1px solid var(--line);
+  box-shadow: 0 0 0 1px rgba(224, 116, 58, .22), 0 30px 70px rgba(0, 0, 0, .6), 0 0 60px rgba(224, 116, 58, .1); transition: transform .25s, border-color .25s; }
+.feat-frame:hover { transform: translateY(-5px); border-color: var(--copper); }
+.feat-frame::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(transparent 60%, rgba(0, 0, 0, .55)); }
+.feat-play { position: absolute; z-index: 2; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: var(--cream); display: grid; place-items: center; transition: transform .25s; }
+.feat-play::before { content: ""; border-left: 17px solid #000; border-top: 10px solid transparent; border-bottom: 10px solid transparent; margin-left: 5px; }
+.feat-frame:hover .feat-play { transform: scale(1.1); }
+.feat-frame.live { cursor: default; background-image: none !important; transform: none; }
+.feat-frame.live .stop { top: 10px; right: 10px; }
+@media (max-width: 760px) {
+  .featured { grid-template-columns: 1fr; gap: 30px; }
+  .feat-frames { gap: 14px; flex-wrap: nowrap; justify-content: flex-start; }
+  .feat-card { width: calc(50% - 7px); }
+  .feat-card.playing { width: min(380px, 100%, max(250px, calc((100vh - 150px) * 9 / 16))); }
+  .feat-frames:has(.playing) { flex-wrap: wrap; justify-content: center; }
 }
-.filters button:hover { color: var(--cream); border-color: var(--cream); }
-.filters button.on { background: var(--copper); color: #000; border-color: var(--copper); }
+
+/* ป้ายเด่นของลูกค้า (เช่น ออกอากาศทางทีวี) */
+.client-head .client-badge { flex: none; padding: 3px 12px; border-radius: 999px; border: 1px solid var(--copper); background: rgba(224, 116, 58, .12); color: var(--copper);
+  font: 700 .66rem var(--display); letter-spacing: .2em; text-transform: uppercase; }
+.client.spot .client-head { border-bottom-color: var(--copper); }
+.client-note { margin: 10px 0 0; color: var(--cream); font-size: .95rem; opacity: .85; }
+.tag-ai { position: absolute; z-index: 3; left: 10px; top: 42px; padding: 3px 10px; border-radius: 999px; background: var(--copper); color: #000; font: 700 .6rem var(--display); letter-spacing: .2em; }
+
+/* BTS: ปุ่มบนการ์ด + โหมดดูภาพเบื้องหลัง */
+.bts-btn { position: absolute; z-index: 3; right: 10px; top: 42px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--copper); background: rgba(5, 4, 3, .72);
+  color: var(--copper); font: 700 .62rem var(--display); letter-spacing: .2em; cursor: pointer; transition: background .2s, color .2s, transform .2s; }
+.bts-btn:hover { background: var(--copper); color: #000; transform: translateY(-1px); }
+.reel.bts { background: #0b0705 !important; }
+.reel-item.bts-open { flex-basis: 100% !important; max-width: 1100px; }
+.bts-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 2; background: #0b0705; }
+.bts-bar { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 26px 14px 10px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, .85)); font: 700 .62rem var(--display); letter-spacing: .22em; color: var(--cream); }
+.bts-next { background: var(--copper); color: #000; border: 0; border-radius: 999px; padding: 4px 12px; cursor: pointer; font: inherit; letter-spacing: .14em; }
+
+/* ตัวกรองลูกค้า: เรียบง่าย — มือถือเป็นแถบบรรทัดเดียวปัดซ้าย-ขวา, จอกว้างเรียงกะทัดรัด */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; }
+.chip { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 9px; padding: 7px 10px 7px 15px; border-radius: 999px;
+  background: transparent; color: var(--muted); border: 1px solid var(--line); cursor: pointer; font: inherit; font-size: .76rem; letter-spacing: .1em; text-transform: uppercase;
+  transition: transform .2s, color .2s, border-color .2s, background .2s; }
+.chip > * { position: relative; z-index: 1; }
+.chip::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(224, 116, 58, .28), rgba(224, 116, 58, 0)); transform: translateX(-101%); transition: transform .35s ease; }
+.chip b { font-weight: 600; font-size: .64rem; letter-spacing: .04em; padding: 1px 7px; border-radius: 999px; background: rgba(246, 239, 232, .09); transition: background .2s, color .2s; }
+.chip:hover { color: var(--cream); border-color: var(--copper); transform: translateY(-2px); }
+.chip:hover::before { transform: translateX(0); }
+.chip:hover b { background: var(--copper); color: #000; }
+.chip:focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
+.chip.on { background: var(--copper); color: #000; border-color: var(--copper); font-weight: 600; }
+.chip.on::before { display: none; }
+.chip.on b { background: rgba(0, 0, 0, .2); color: #000; }
+@media (hover: none) { .chip:hover { transform: none; } }
+@media (max-width: 760px) {
+  .filters { flex-wrap: nowrap; overflow-x: auto; gap: 8px; margin: 0 -5vw 22px; padding: 4px 5vw 8px; scroll-snap-type: x proximity; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 5vw, #000 calc(100% - 9vw), transparent); mask-image: linear-gradient(90deg, transparent, #000 5vw, #000 calc(100% - 9vw), transparent); }
+  .filters::-webkit-scrollbar { display: none; }
+  .chip { flex: none; scroll-snap-align: center; padding: 8px 10px 8px 14px; }
+}
 
 /* ลูกค้า → รายการ → คลิป */
 .work-summary { margin: -16px 0 18px; font-size: .85rem; letter-spacing: .1em; }
 .client { margin-top: 54px; }
 .client:first-child { margin-top: 24px; }
 .client-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
-.client-head h3 { font-family: var(--display); font-weight: 500; font-size: clamp(1.4rem, 3vw, 2rem); }
-.client-head span { color: var(--muted); font-size: .8rem; letter-spacing: .12em; }
+.client-head h3 { min-width: 0; line-height: 1.25; font-family: var(--display); font-weight: 500; font-size: clamp(1.4rem, 3vw, 2rem); }
+.client-head span { flex: none; white-space: nowrap; color: var(--muted); font-size: .8rem; letter-spacing: .12em; }
 .program { margin: 18px 0 0; color: var(--copper); font-family: var(--display); font-size: .78rem; letter-spacing: .3em; text-transform: uppercase; }
 .reel-item.wide { flex-basis: 380px; }
 .reel-item.wide.playing { flex-basis: min(640px, 90vw); }
 .reel-item.wide .reel { aspect-ratio: 16 / 9; }
+.views { position: absolute; z-index: 2; left: 10px; top: 10px; padding: 1px 9px; border-radius: 999px; background: rgba(5, 4, 3, .65); font-size: .68rem; letter-spacing: .06em; color: var(--cream); }
 .dur { position: absolute; z-index: 2; right: 10px; top: 10px; padding: 1px 9px; border-radius: 999px; background: rgba(5, 4, 3, .65); font-size: .68rem; letter-spacing: .06em; }
 
 /* reels */
@@ -140,7 +210,7 @@ a { color: inherit; text-decoration: none; }
 .reels { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 22px 18px; padding: 14px 0 6px; }
 .reel-item { flex: 0 0 210px; }
 .reel-item.playing { flex-basis: min(340px, 84vw); }
-.reel { position: relative; width: 100%; aspect-ratio: 9 / 16; border-radius: 14px; overflow: hidden; cursor: pointer; background-size: cover; background-position: center; border: 1px solid var(--line); transition: transform .25s, border-color .25s; }
+.reel { position: relative; width: 100%; aspect-ratio: 9 / 16; border-radius: 14px; overflow: hidden; cursor: pointer; background-size: cover; background-position: center; background-repeat: no-repeat; background-clip: padding-box; border: 1px solid var(--line); transition: transform .25s, border-color .25s; } /* no-repeat + padding-box: ไม่ให้พิกเซลขอบตรงข้ามของภาพโผล่ใต้เส้นขอบ (เส้นสีเหลือบ ๆ) */
 .reel:hover { transform: translateY(-6px); border-color: var(--copper); }
 .reel::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(135deg, rgba(0, 0, 0, .35), rgba(224, 116, 58, .25)); mix-blend-mode: multiply; transition: opacity .3s; }
 .reel::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 50%, rgba(0, 0, 0, .8)); }
@@ -190,7 +260,8 @@ a { color: inherit; text-decoration: none; }
 .service p { color: var(--muted); font-size: .9rem; }
 
 /* contact */
-.contact-sec { background: linear-gradient(180deg, var(--bg) 0%, #2c1107 60%, #7d3517 100%); padding-bottom: 130px; }
+.contact-sec { padding-bottom: 130px; min-height: 560px;
+  background: linear-gradient(180deg, var(--bg) 0%, rgba(5, 4, 3, .55) 32%, rgba(5, 4, 3, .1) 100%), url("assets/contact-bg.jpg") 18% bottom / cover no-repeat, #5a2410; }
 .contact { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 26px; }
 .contact a { border: 1px solid var(--line); background: rgba(5, 4, 3, .45); padding: 14px 26px; border-radius: 999px; transition: .25s; }
 .contact a:hover { border-color: var(--copper); background: var(--copper); color: #000; }
@@ -207,19 +278,87 @@ footer { text-align: center; padding: 30px; color: #b98a6e; font-size: .75rem; l
 .post-link { display: inline-block; margin-top: 10px; padding: 4px 14px; border: 1px solid var(--copper); border-radius: 999px; color: var(--copper); font-size: .72rem; letter-spacing: .08em; transition: .2s; }
 .post-link:hover { background: var(--copper); color: #000; }
 
-@media (max-width: 640px) {
-  .reel-item { flex-basis: calc(50% - 9px); }
+@media (max-width: 760px) {
+  .reel-item { flex-basis: calc((100% - 36px) / 3); }
   .reel-item.wide { flex-basis: 100%; }
   .reel-item.playing, .reel-item.wide.playing { flex-basis: 100%; }
 }
+@media (max-width: 520px) {
+  .reel-item { flex-basis: calc(50% - 9px); }
+}
 @media (max-width: 760px) {
-  .nav nav a:not(.btn) { display: none; }
   .section { padding: 72px 5vw; }
   .about { grid-template-columns: 1fr; gap: 44px; }
-  .portrait { max-width: 300px; margin: 0 auto; }
+  .portrait { width: min(300px, 100%); margin: 0 auto; } /* ต้องกำหนด width ตรง ๆ: กรอบนี้ไม่มีเนื้อหาในตัว (รูปเป็น absolute) ถ้ามีแค่ max-width จะหดเหลือ 0 */
   .w { letter-spacing: .3em; }
   .hero { padding-top: 100px; gap: 30px; }
 }
+/* ---- เมนูมือถือ ---- */
+.menu-btn { display: none; width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 50%; background: rgba(5, 4, 3, .5); cursor: pointer; position: relative; }
+.menu-btn span { position: absolute; left: 13px; right: 13px; height: 2px; background: var(--cream); transition: .25s; }
+.menu-btn span:nth-child(1) { top: 17px; } .menu-btn span:nth-child(2) { top: 23px; }
+.nav.open .menu-btn span:nth-child(1) { top: 20px; transform: rotate(45deg); }
+.nav.open .menu-btn span:nth-child(2) { top: 20px; transform: rotate(-45deg); }
+@media (max-width: 760px) {
+  .menu-btn { display: block; }
+  .nav nav { position: fixed; top: 66px; left: 14px; right: 14px; flex-direction: column; align-items: stretch; gap: 0; padding: 8px 14px 14px;
+    border-radius: 18px; background: rgba(8, 6, 5, .97); border: 1px solid var(--line); backdrop-filter: blur(14px);
+    opacity: 0; pointer-events: none; transform: translateY(-8px); transition: opacity .2s, transform .2s; }
+  .nav.open nav { opacity: 1; pointer-events: auto; transform: none; }
+  .nav nav a:not(.btn) { display: block; padding: 15px 4px; border-bottom: 1px solid var(--line); font-size: .85rem; }
+  .nav nav .btn { margin-top: 12px; text-align: center; }
+}
+
+/* ---- ปุ่ม LINE ลอย ---- */
+.line-fab { position: fixed; right: 16px; bottom: 16px; z-index: 40; display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px 11px 14px;
+  border-radius: 999px; background: var(--cream); color: #000; font-weight: 600; font-size: .85rem; box-shadow: 0 8px 30px rgba(0, 0, 0, .5);
+  opacity: 0; transform: translateY(14px); pointer-events: none; transition: .25s; }
+.line-fab.show { opacity: 1; transform: none; pointer-events: auto; }
+.line-fab:hover { background: #06c755; color: #fff; }
+.line-fab:hover svg path { fill: #fff; }
+.line-fab[hidden] { display: none; }
+
+/* ---- เลื่อนแล้วค่อย ๆ โผล่ (ถ้า JS ไม่พร้อม เนื้อหาไม่ถูกซ่อน) ---- */
+.reveal-ready .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
+.reveal-ready .reveal.in { opacity: 1; transform: none; }
+
+/* ---- แอนิเมชันเปิดหน้าแรก ---- */
+@keyframes rise { from { opacity: 0; transform: translateY(24px); } }
+@keyframes fadeIn { from { opacity: 0; } }
+.hero .giant { animation: fadeIn 1.4s ease both; }
+.hero .bars { animation: fadeIn 1s .2s ease both; }
+.hero .reel-btn { animation: rise .8s .5s ease both; }
+.hero-text > * { animation: rise .8s ease both; }
+.hero-tag { animation-delay: .35s !important; } .hero-name { animation-delay: .5s !important; } .hero-cta { animation-delay: .65s !important; }
+
+/* ---- element ลอย (พื้นดำของภาพ + โหมด screen = โปร่งใส) ---- */
+.section, .contact-sec { overflow-x: clip; }
+.section > *:not(.float-el):not(.process) { position: relative; z-index: 1; } /* .process ยกเว้น: ไอคอนข้างในใช้โหมด screen ต้องไม่ถูกครอบด้วย stacking context */
+.float-el { position: absolute; z-index: 0; pointer-events: none; mix-blend-mode: screen; width: var(--w, 160px); height: auto; animation: drift var(--d, 9s) ease-in-out infinite; }
+@keyframes drift { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-16px) rotate(4deg); } }
+.fe-reel { --w: 92px; --d: 11s; left: 6vw; top: 14%; }
+.fe-planet { --w: 150px; --d: 14s; right: 22vw; top: 8%; opacity: .9; }
+.fe-crt { --w: 104px; --d: 10s; left: 3vw; bottom: 14%; }
+.fe-play { --w: 78px; --d: 8s; right: 26vw; bottom: 13%; }
+.fe-head { --w: 170px; --d: 12s; top: 4%; right: 4vw; }
+.fe-lens { --w: 180px; --d: 10s; bottom: 6%; right: 8vw; }
+.fe-clap { --w: 190px; --d: 9s; top: 18%; right: 8vw; }
+.fe-wave { --w: 360px; --d: 7s; top: 18px; right: 6vw; opacity: .95; }
+@media (max-width: 760px) {
+  .fe-head, .fe-clap, .fe-wave { --w: 96px; opacity: .55; }
+  .fe-reel, .fe-crt, .fe-planet, .fe-play, .fe-lens { display: none; }
+  .fe-wave { --w: 170px; }
+}
+
+/* ---- ขั้นตอนการทำงาน ---- */
+.process-title { margin: 64px 0 22px; font-family: var(--display); font-weight: 500; font-size: 1.2rem; }
+.process { list-style: none; counter-reset: step; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; }
+.process li { counter-increment: step; position: relative; }
+.step-ico { display: block; width: 96px; height: 96px; object-fit: contain; mix-blend-mode: screen; margin: -6px 0 4px -10px; }
+.process li::before { content: "0" counter(step); display: block; margin-bottom: 8px; font-family: var(--display); color: var(--copper); font-size: .85rem; letter-spacing: .3em; }
+.process h4 { font-family: var(--display); font-weight: 500; font-size: 1.05rem; margin-bottom: 4px; }
+.process p { color: var(--muted); font-size: .88rem; }
+
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
