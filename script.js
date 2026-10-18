@@ -226,7 +226,11 @@ function startPlayback(host) {
 }
 
 let live = null;
+// ตำแหน่งเลื่อนก่อนเล่นจากแกลเลอรี Highlights — กด X แล้วกลับไปตรงนั้น (เล่นจากรายการผลงานไม่ต้องกลับ)
+let backTo = null;
+function closeLive() { const b = backTo; stopLive(); if (b != null) scrollTo({ top: b, behavior: "smooth" }); }
 function stopLive() {
+  backTo = null;
   if (!live) return;
   live.host.classList.remove("live", "bts");
   live.host.innerHTML = live.html; // คืนภาพปก + หยุดวิดีโอ
@@ -276,7 +280,7 @@ function showBts(w, el) {
 }
 
 function onActivate(e) {
-  if (e.target.closest(".stop")) { stopLive(); return; }
+  if (e.target.closest(".stop")) { closeLive(); return; }
   if (e.target.closest("a")) return;
   if (e.target.closest(".bts-next")) { live?.bts?.next(); return; }
   const el = e.target.closest("[data-i]");
@@ -294,10 +298,11 @@ for (const id of ["clients"]) {
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") stopLive(); });
 
 // เล่นคลิปตามลำดับใน WORKS: เปิดตัวกรองให้เห็นคลิปนั้น แล้วเล่นที่การ์ด (เลื่อนไปกลางจอให้เองใน playInline)
-function playWork(i) {
+function playWork(i, fromGallery) {
+  const y = scrollY;
   if (active !== "ทั้งหมด" && active !== WORKS[i].client) { active = "ทั้งหมด"; renderFilters(); renderWorks(); }
   const el = document.querySelector(`#clients [data-i="${i}"]`);
-  if (el) playInline(WORKS[i], el);
+  if (el) { playInline(WORKS[i], el); if (fromGallery) backTo = y; }
 }
 
 // ปุ่ม Play reel กลางหน้าแรก: เล่นคลิปที่ตั้ง showreel: true ไม่งั้นคลิปแรกสุด
@@ -342,7 +347,7 @@ function playFeatured(frame) {
   startPlayback(frame);
   centerOn(frame);
 }
-$("featFrames").addEventListener("click", (e) => { const fr = e.target.closest(".feat-frame"); if (e.target.closest(".stop")) stopLive(); else if (fr) playFeatured(fr); });
+$("featFrames").addEventListener("click", (e) => { const fr = e.target.closest(".feat-frame"); if (e.target.closest(".stop")) closeLive(); else if (fr) playFeatured(fr); });
 $("featFrames").addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.matches(".feat-frame")) { e.preventDefault(); playFeatured(e.target); } });
 
 // ---- Highlights: แกลเลอรีสุ่มเลื่อนวน (ซ้ายขึ้น · กลางลง · ขวาขึ้น …) ----
@@ -374,10 +379,10 @@ function buildGallery() {
 }
 $("galleryGrid").addEventListener("click", (e) => {
   const t = e.target.closest(".g-tile");
-  if (t) playWork(+t.dataset.i);
+  if (t) playWork(+t.dataset.i, true);
 });
 $("galleryGrid").addEventListener("keydown", (e) => {
-  if ((e.key === "Enter" || e.key === " ") && e.target.matches(".g-tile[tabindex]")) { e.preventDefault(); playWork(+e.target.dataset.i); }
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches(".g-tile[tabindex]")) { e.preventDefault(); playWork(+e.target.dataset.i, true); }
 });
 buildGallery();
 
