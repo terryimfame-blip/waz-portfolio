@@ -247,15 +247,54 @@ for (const id of ["clients"]) {
 }
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") stopLive(); });
 
-// ปุ่ม Play reel กลางหน้าแรก: เลื่อนไปที่คลิปแล้วเล่นเลย (คลิปที่ตั้ง showreel: true ไม่งั้นคลิปแรกสุด)
-$("orb").addEventListener("click", () => {
-  let i = WORKS.findIndex((w) => w.showreel);
-  if (i < 0) i = 0;
+// เล่นคลิปตามลำดับใน WORKS: เปิดตัวกรองให้เห็นคลิปนั้น แล้วเล่นที่การ์ด (เลื่อนไปกลางจอให้เองใน playInline)
+function playWork(i) {
   if (active !== "ทั้งหมด" && active !== WORKS[i].client) { active = "ทั้งหมด"; renderFilters(); renderWorks(); }
-  const el = document.querySelector(`[data-i="${i}"]`);
-  if (!el) return;
-  playInline(WORKS[i], el); // เลื่อนไปกลางจอให้เองใน playInline
+  const el = document.querySelector(`#clients [data-i="${i}"]`);
+  if (el) playInline(WORKS[i], el);
+}
+
+// ปุ่ม Play reel กลางหน้าแรก (คลิปที่ตั้ง showreel: true ไม่งั้นคลิปแรกสุด)
+$("orb").addEventListener("click", () => {
+  const i = WORKS.findIndex((w) => w.showreel);
+  playWork(i < 0 ? 0 : i);
 });
+
+// ---- Highlights: แกลเลอรีสุ่มเลื่อนวน (ซ้ายขึ้น · กลางลง · ขวาขึ้น …) ----
+function buildGallery() {
+  const COLS = 5, PER = 6; // จอแคบแสดง 3 คอลัมน์แรก (ซ่อนที่เหลือด้วย CSS)
+  const pool = WORKS.map((w, i) => ({ w, i })).filter(({ w }) => w.vertical && thumbUrl(w));
+  if (!pool.length) { $("highlights").hidden = true; return; }
+  for (let k = pool.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [pool[k], pool[j]] = [pool[j], pool[k]]; }
+  const picks = pool.slice(0, COLS * PER);
+  while (picks.length < COLS * PER) picks.push(pool[picks.length % pool.length]);
+  const ratios = ["3 / 4", "1 / 1", "4 / 5", "9 / 16", "3 / 4", "4 / 5"];
+  const durs = [46, 58, 52, 62, 50];
+  const tile = ({ w, i }, k, c, copy) => `
+    <figure class="g-tile" data-i="${i}" ${copy ? 'aria-hidden="true"' : `tabindex="0" role="button" aria-label="เล่น ${esc(w.title)}"`} style="aspect-ratio:${ratios[(k + c * 2) % ratios.length]}">
+      <img src="${esc(thumbUrl(w))}" alt="" loading="lazy" decoding="async">
+      <figcaption><span>${esc(w.client)}</span>${esc(w.title)}</figcaption>
+    </figure>`;
+  $("galleryGrid").innerHTML = Array.from({ length: COLS }, (_, c) => {
+    const col = picks.filter((_, k) => k % COLS === c);
+    const set = (copy) => col.map((p, k) => tile(p, k, c, copy)).join("");
+    return `<div class="g-col"><div class="g-track ${c % 2 ? "down" : "up"}" style="--dur:${durs[c]}s">${set(false)}${set(true)}</div></div>`;
+  }).join("");
+  // ภาพปกล่าสุดจาก Wistia: ถ้าตั้งภาพปกใหม่บน Wistia ไว้ ให้สลับเป็นภาพนั้น (ภาพเดิมไม่กะพริบถ้ายังไม่เปลี่ยน)
+  for (const { w, i } of new Map(picks.map((p) => [p.i, p])).values()) {
+    liveThumb(w).then((live) => {
+      if (live && live !== thumbUrl(w)) $("galleryGrid").querySelectorAll(`.g-tile[data-i="${i}"] img`).forEach((img) => { img.src = live; });
+    });
+  }
+}
+$("galleryGrid").addEventListener("click", (e) => {
+  const t = e.target.closest(".g-tile");
+  if (t) playWork(+t.dataset.i);
+});
+$("galleryGrid").addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches(".g-tile[tabindex]")) { e.preventDefault(); playWork(+e.target.dataset.i); }
+});
+buildGallery();
 
 renderFilters();
 renderWorks();
