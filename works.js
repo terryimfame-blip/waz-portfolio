@@ -7,7 +7,7 @@ const PROFILE = {
   role: "Video Editor",
   heroWord: "Portfolio", // ตัวหนังสือใหญ่กลางหน้าแรก
   photo: "assets/me.png", // รูปไดคัท (PNG พื้นหลังโปร่งใส)
-  brands: ["AM Hospital", "Derma Innovation", "Rarin", "SOM Balance School", "Sun On", "KU Garden", "Fayda", "INSIDER", "Ballad", "TrackleTrade", "RBS Clinic", "EKOZOU"], // ชื่อลูกค้า (สร้างจากรายการผลงาน) ว่างไว้ = ซ่อนส่วนนี้ // ใส่ชื่อแบรนด์/ลูกค้าจริงเมื่อพร้อม เช่น ["Brand A", "Cafe B"] ว่างไว้ = ซ่อนส่วนนี้
+  brands: ["Fayda", "AM Hospital", "Derma Innovation", "Rarin", "SOM Balance School", "Sun On", "KU Garden", "INSIDER", "Ballad", "TrackleTrade", "RBS Clinic", "EKOZOU"], // ชื่อลูกค้า (สร้างจากรายการผลงาน) ว่างไว้ = ซ่อนส่วนนี้ // ใส่ชื่อแบรนด์/ลูกค้าจริงเมื่อพร้อม เช่น ["Brand A", "Cafe B"] ว่างไว้ = ซ่อนส่วนนี้
   tagline: "More than a cut, it's a story.",
   about:
     "เรียกผมว่า “วา” ช่างตัดต่อวิดีโอที่ชอบเล่าเรื่องด้วยจังหวะ เสียง และสี " +
@@ -37,6 +37,11 @@ const PROFILE = {
 // thumb:    รูปปก (ลิงก์หรือ path) — คลิป Wistia ไม่ต้องแก้: เว็บดึงภาพปกล่าสุดจาก Wistia เอง ช่องนี้เป็นตัวสำรอง · post / stats: ลิงก์โพสต์จริง IG/FB/TikTok + ยอดวิว (ไม่บังคับ)
 // showreel: true = ให้ปุ่ม "Play reel" หน้าแรกเล่นคลิปนี้ (ไม่ใส่ = เล่นคลิปแรกสุด)
 const WORKS = [
+  { client: "Fayda", title: "จุดเปลี่ยนระหว่าง เคสเกม กับ ธุรกิจ คือลูก", type: "wistia", src: "swqn4860uc", dur: 86, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/a33516fde6ae5f847a9e92df7715e746.jpg?image_crop_resized=360x640" },
+  { client: "Fayda", title: "โมเม้นความคิดแรกที่อยากจะทําสบู่", type: "wistia", src: "6ix7bych3k", dur: 81, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/7d611e8fd43d55062f1932fd6bc7dab6.jpg?image_crop_resized=360x640" },
+  { client: "Fayda", title: "คอมเม้นท์รีวิว-1 ดาว", type: "wistia", src: "i6oxqrmkf6", dur: 89, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/fa3ff723e996ddfec593fd7db40c4e1a.jpg?image_crop_resized=360x640" },
+  { client: "Fayda", title: "ผีก็ต้องการดูแลนะ", type: "wistia", src: "me4bgcnr8g", dur: 91, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/b93334608a533902aa345659897e5fac3e08308f.jpg?image_crop_resized=360x640" },
+  { client: "Fayda", title: "คุณจะอยู่ได้อีกไม่นาน", type: "wistia", src: "lw0zhv1gn9", dur: 75, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/3c5be89ec4b920d86a8770cf201feca0a8f69666.jpg?image_crop_resized=360x640" },
   { client: "AM Hospital", program: "beyond change", title: "ครีม", type: "wistia", src: "n7ggzyrjr5", dur: 23, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/afe57af838453a991d08953dae057203.jpg?image_crop_resized=360x640" },
   { client: "AM Hospital", program: "beyond change", title: "เปียโน", type: "wistia", src: "vkya9hy6jv", dur: 29, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/812bf518cf904da1bd1c9dbe3cb50c23.jpg?image_crop_resized=360x640" },
   { client: "AM Hospital", program: "beyond change", title: "ธัญญ่า", type: "wistia", src: "9wn3iso1wi", dur: 23, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/dd5c870e8f2bd22739400fcef3bcd6c5.jpg?image_crop_resized=360x640" },
@@ -66,11 +71,6 @@ const WORKS = [
   { client: "KU Garden", program: "Podcast", title: "แคชเชียรก็แค่คิดเงินป่ะ", type: "wistia", src: "o1mb4cy2sf", dur: 66, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/0fe7de70f26cd286c872102085ef5205f12a01db.jpg?image_crop_resized=360x640" },
   { client: "KU Garden", program: "Podcast", title: "วิธีรับมือกับคน Toxic", type: "wistia", src: "lu1m761uh2", dur: 90, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/715c0f9117eb6271d3d3a5f2773afa9919bf833c.jpg?image_crop_resized=360x640" },
   { client: "KU Garden", program: "Podcast", title: "คนเก่ง หรือ คนทัศนคติดี", type: "wistia", src: "21k7wbvxk6", dur: 77, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/e0edbc5405edb1f8ca8c2e1cad71cd45fb1f2b2d.jpg?image_crop_resized=360x640" },
-  { client: "Fayda", title: "จุดเปลี่ยนระหว่าง เคสเกม กับ ธุรกิจ คือลูก", type: "wistia", src: "swqn4860uc", dur: 86, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/a33516fde6ae5f847a9e92df7715e746.jpg?image_crop_resized=360x640" },
-  { client: "Fayda", title: "โมเม้นความคิดแรกที่อยากจะทําสบู่", type: "wistia", src: "6ix7bych3k", dur: 81, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/7d611e8fd43d55062f1932fd6bc7dab6.jpg?image_crop_resized=360x640" },
-  { client: "Fayda", title: "คอมเม้นท์รีวิว-1 ดาว", type: "wistia", src: "i6oxqrmkf6", dur: 89, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/fa3ff723e996ddfec593fd7db40c4e1a.jpg?image_crop_resized=360x640" },
-  { client: "Fayda", title: "ผีก็ต้องการดูแลนะ", type: "wistia", src: "me4bgcnr8g", dur: 91, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/b93334608a533902aa345659897e5fac3e08308f.jpg?image_crop_resized=360x640" },
-  { client: "Fayda", title: "คุณจะอยู่ได้อีกไม่นาน", type: "wistia", src: "lw0zhv1gn9", dur: 75, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/3c5be89ec4b920d86a8770cf201feca0a8f69666.jpg?image_crop_resized=360x640" },
   { client: "INSIDER", title: "พี่คนนี้เดินมา 3 เดือน", type: "wistia", src: "oraiyqczac", dur: 72, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/271113ba4a79c24d32fbe0765e3b440e3cc19c0e.jpg?image_crop_resized=360x640" },
   { client: "INSIDER", title: "ทําไมต้องเลือก Solis", type: "wistia", src: "12shtm91io", dur: 64, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/4901ddca6d47107657c53de3ada225f9c6477a7d.jpg?image_crop_resized=360x640" },
   { client: "INSIDER", title: "ทําไมต้องเลือก Huawei", type: "wistia", src: "v1aw1xduzr", dur: 55, vertical: true, thumb: "https://embed-ssl.wistia.com/deliveries/a3481ba96928eda8d7ca24892f4f448ace3008e6.jpg?image_crop_resized=360x640" },
